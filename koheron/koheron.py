@@ -8,6 +8,7 @@ import string
 import json
 import requests
 import time
+import platform
 
 from .version import __version__
 
@@ -257,10 +258,11 @@ class KoheronClient:
                 self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 16384)
                 so_rcvbuf = self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
 
-                #   Disable Nagle algorithm for real-time response:
-                self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-                tcp_nodelay = self.sock.getsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY)
-                assert tcp_nodelay == 1
+                #   Disable Nagle algorithm for real-time response (unnecessary on MacOS)
+                if platform.system() != 'Darwin':
+                    self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                    tcp_nodelay = self.sock.getsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY)
+                    assert tcp_nodelay == 1
 
                 # Connect to Kserver
                 self.sock.connect((host, port))
